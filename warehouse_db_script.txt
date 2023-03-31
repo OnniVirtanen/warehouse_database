@@ -1,0 +1,308 @@
+-- MySQL Workbench Forward Engineering
+
+SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
+SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
+SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';
+
+-- -----------------------------------------------------
+-- Schema warehouse_db
+-- -----------------------------------------------------
+DROP SCHEMA IF EXISTS `warehouse_db` ;
+
+-- -----------------------------------------------------
+-- Schema warehouse_db
+-- -----------------------------------------------------
+CREATE SCHEMA IF NOT EXISTS `warehouse_db` ;
+USE `warehouse_db` ;
+
+-- -----------------------------------------------------
+-- Table `warehouse_db`.`category`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `warehouse_db`.`category` (
+  `category_id` INT(11) NOT NULL AUTO_INCREMENT,
+  `category_name` VARCHAR(45) NOT NULL,
+  `description` VARCHAR(255) NOT NULL,
+  PRIMARY KEY (`category_id`))
+ENGINE = InnoDB
+AUTO_INCREMENT = 4;
+
+
+-- -----------------------------------------------------
+-- Table `warehouse_db`.`customer`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `warehouse_db`.`customer` (
+  `customer_id` INT(11) NOT NULL AUTO_INCREMENT,
+  `first_name` VARCHAR(45) NOT NULL,
+  `last_name` VARCHAR(45) NOT NULL,
+  `contact_name` VARCHAR(45) NOT NULL,
+  `billing_address` VARCHAR(100) NOT NULL,
+  `shipping_address` VARCHAR(100) NOT NULL,
+  `phone` VARCHAR(45) NOT NULL,
+  `email` VARCHAR(45) NOT NULL,
+  PRIMARY KEY (`customer_id`))
+ENGINE = InnoDB
+AUTO_INCREMENT = 3;
+
+
+-- -----------------------------------------------------
+-- Table `warehouse_db`.`employee`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `warehouse_db`.`employee` (
+  `employee_id` INT(11) NOT NULL AUTO_INCREMENT,
+  `first_name` VARCHAR(45) NOT NULL,
+  `last_name` VARCHAR(45) NOT NULL,
+  `title` VARCHAR(45) NOT NULL,
+  `hire_date` DATE NOT NULL,
+  `department` VARCHAR(45) NOT NULL,
+  PRIMARY KEY (`employee_id`))
+ENGINE = InnoDB
+AUTO_INCREMENT = 3;
+
+
+-- -----------------------------------------------------
+-- Table `warehouse_db`.`location`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `warehouse_db`.`location` (
+  `location_id` INT(11) NOT NULL AUTO_INCREMENT,
+  `location_name` VARCHAR(45) NOT NULL,
+  `description` VARCHAR(255) NULL DEFAULT NULL,
+  `aisle` VARCHAR(10) NOT NULL,
+  `shelf` VARCHAR(10) NOT NULL,
+  PRIMARY KEY (`location_id`),
+  UNIQUE INDEX `location_id_UNIQUE` (`location_id` ASC) VISIBLE)
+ENGINE = InnoDB
+AUTO_INCREMENT = 4;
+
+
+-- -----------------------------------------------------
+-- Table `warehouse_db`.`product`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `warehouse_db`.`product` (
+  `product_id` INT(11) NOT NULL,
+  `external_id` VARCHAR(45) NULL DEFAULT NULL,
+  `product_name` VARCHAR(45) NOT NULL,
+  `description` VARCHAR(255) NOT NULL,
+  `category` INT(11) NOT NULL,
+  `unit_price` DECIMAL(6,2) NOT NULL,
+  PRIMARY KEY (`product_id`),
+  INDEX `fk_product_category1_idx` (`category` ASC) VISIBLE,
+  CONSTRAINT `fk_product_category1`
+    FOREIGN KEY (`category`)
+    REFERENCES `warehouse_db`.`category` (`category_id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `warehouse_db`.`inventory`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `warehouse_db`.`inventory` (
+  `inventory_id` INT(11) NOT NULL AUTO_INCREMENT,
+  `product_id` INT(11) NOT NULL,
+  `location_id` INT(11) NOT NULL,
+  `quantity` INT(11) NOT NULL,
+  `last_updated` TIMESTAMP NOT NULL,
+  PRIMARY KEY (`inventory_id`),
+  INDEX `fk_inventory_location1_idx` (`location_id` ASC) VISIBLE,
+  INDEX `fk_inventory_product1_idx` (`product_id` ASC) VISIBLE,
+  CONSTRAINT `fk_inventory_location1`
+    FOREIGN KEY (`location_id`)
+    REFERENCES `warehouse_db`.`location` (`location_id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_inventory_product1`
+    FOREIGN KEY (`product_id`)
+    REFERENCES `warehouse_db`.`product` (`product_id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB
+AUTO_INCREMENT = 4;
+
+
+-- -----------------------------------------------------
+-- Table `warehouse_db`.`supplier`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `warehouse_db`.`supplier` (
+  `supplier_id` INT(11) NOT NULL AUTO_INCREMENT,
+  `supplier_name` VARCHAR(45) NOT NULL,
+  `contact_name` VARCHAR(45) NOT NULL,
+  `address` VARCHAR(45) NOT NULL,
+  `phone` VARCHAR(45) NOT NULL,
+  `email` VARCHAR(45) NOT NULL,
+  PRIMARY KEY (`supplier_id`))
+ENGINE = InnoDB
+AUTO_INCREMENT = 3;
+
+
+-- -----------------------------------------------------
+-- Table `warehouse_db`.`purchase_order`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `warehouse_db`.`purchase_order` (
+  `purchase_order_id` INT(11) NOT NULL AUTO_INCREMENT,
+  `supplier_id` INT(11) NOT NULL,
+  `order_date` DATE NOT NULL,
+  `expected_delivery_date` DATE NOT NULL,
+  `order_status` VARCHAR(45) NOT NULL,
+  PRIMARY KEY (`purchase_order_id`),
+  INDEX `fk_purchase_order_supplier1_idx` (`supplier_id` ASC) VISIBLE,
+  CONSTRAINT `fk_purchase_order_supplier1`
+    FOREIGN KEY (`supplier_id`)
+    REFERENCES `warehouse_db`.`supplier` (`supplier_id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB
+AUTO_INCREMENT = 3;
+
+
+-- -----------------------------------------------------
+-- Table `warehouse_db`.`purchase_order_item`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `warehouse_db`.`purchase_order_item` (
+  `purchase_order_item_id` INT(11) NOT NULL AUTO_INCREMENT,
+  `purchase_order_id` INT(11) NOT NULL,
+  `product_id` INT(11) NOT NULL,
+  `quantity` INT(11) NOT NULL,
+  `unit_price` DECIMAL(6,2) NOT NULL,
+  PRIMARY KEY (`purchase_order_item_id`),
+  INDEX `fk_purchase_order_item_purchase_order1_idx` (`purchase_order_id` ASC) VISIBLE,
+  INDEX `fk_purchase_order_item_product1_idx` (`product_id` ASC) VISIBLE,
+  CONSTRAINT `fk_purchase_order_item_product1`
+    FOREIGN KEY (`product_id`)
+    REFERENCES `warehouse_db`.`product` (`product_id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_purchase_order_item_purchase_order1`
+    FOREIGN KEY (`purchase_order_id`)
+    REFERENCES `warehouse_db`.`purchase_order` (`purchase_order_id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB
+AUTO_INCREMENT = 3;
+
+
+-- -----------------------------------------------------
+-- Table `warehouse_db`.`sales_order`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `warehouse_db`.`sales_order` (
+  `sales_order_id` INT(11) NOT NULL AUTO_INCREMENT,
+  `customer_id` INT(11) NOT NULL,
+  `employee_id` INT(11) NOT NULL,
+  `order_date` DATE NOT NULL,
+  `shipping_date` DATE NOT NULL,
+  `order_status` VARCHAR(45) NOT NULL,
+  PRIMARY KEY (`sales_order_id`),
+  INDEX `fk_sales_order_customer1_idx` (`customer_id` ASC) VISIBLE,
+  INDEX `fk_sales_order_employee1_idx` (`employee_id` ASC) VISIBLE,
+  CONSTRAINT `fk_sales_order_customer1`
+    FOREIGN KEY (`customer_id`)
+    REFERENCES `warehouse_db`.`customer` (`customer_id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_sales_order_employee1`
+    FOREIGN KEY (`employee_id`)
+    REFERENCES `warehouse_db`.`employee` (`employee_id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB
+AUTO_INCREMENT = 3;
+
+
+-- -----------------------------------------------------
+-- Table `warehouse_db`.`sales_order_item`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `warehouse_db`.`sales_order_item` (
+  `sales_order_item_id` INT(11) NOT NULL AUTO_INCREMENT,
+  `sales_order_id` INT(11) NOT NULL,
+  `product_id` INT(11) NOT NULL,
+  `quantity` INT(11) NOT NULL,
+  `unit_price` DECIMAL(6,2) NOT NULL,
+  PRIMARY KEY (`sales_order_item_id`),
+  INDEX `fk_sales_order_item_sales_order1_idx` (`sales_order_id` ASC) VISIBLE,
+  INDEX `fk_sales_order_item_product1_idx` (`product_id` ASC) VISIBLE,
+  CONSTRAINT `fk_sales_order_item_product1`
+    FOREIGN KEY (`product_id`)
+    REFERENCES `warehouse_db`.`product` (`product_id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_sales_order_item_sales_order1`
+    FOREIGN KEY (`sales_order_id`)
+    REFERENCES `warehouse_db`.`sales_order` (`sales_order_id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB
+AUTO_INCREMENT = 4;
+
+
+-- -----------------------------------------------------
+-- Table `warehouse_db`.`shipment`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `warehouse_db`.`shipment` (
+  `shipment_id` INT(11) NOT NULL AUTO_INCREMENT,
+  `sales_order_id` INT(11) NOT NULL,
+  `carrier` VARCHAR(45) NOT NULL,
+  `tracking_number` VARCHAR(45) NOT NULL,
+  `shipment_status` VARCHAR(45) NOT NULL,
+  PRIMARY KEY (`shipment_id`),
+  INDEX `fk_shipment_sales_order1_idx` (`sales_order_id` ASC) VISIBLE,
+  CONSTRAINT `fk_shipment_sales_order1`
+    FOREIGN KEY (`sales_order_id`)
+    REFERENCES `warehouse_db`.`sales_order` (`sales_order_id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB
+AUTO_INCREMENT = 3;
+
+USE `warehouse_db` ;
+
+-- -----------------------------------------------------
+-- Placeholder table for view `warehouse_db`.`customer_total_orders`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `warehouse_db`.`customer_total_orders` (`customer_id` INT, `first_name` INT, `last_name` INT, `total_orders` INT);
+
+-- -----------------------------------------------------
+-- Placeholder table for view `warehouse_db`.`product_stock_information`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `warehouse_db`.`product_stock_information` (`product_id` INT, `product_name` INT, `location_id` INT, `stock_quantity` INT);
+
+-- -----------------------------------------------------
+-- Placeholder table for view `warehouse_db`.`product_total_sales`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `warehouse_db`.`product_total_sales` (`product_id` INT, `product_name` INT, `total_sales` INT);
+
+-- -----------------------------------------------------
+-- Placeholder table for view `warehouse_db`.`products_with_categories`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `warehouse_db`.`products_with_categories` (`product_id` INT, `product_name` INT, `category_name` INT);
+
+-- -----------------------------------------------------
+-- View `warehouse_db`.`customer_total_orders`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `warehouse_db`.`customer_total_orders`;
+USE `warehouse_db`;
+CREATE  OR REPLACE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `warehouse_db`.`customer_total_orders` AS select `c`.`customer_id` AS `customer_id`,`c`.`first_name` AS `first_name`,`c`.`last_name` AS `last_name`,count(`so`.`sales_order_id`) AS `total_orders` from (`warehouse_db`.`customer` `c` join `warehouse_db`.`sales_order` `so` on(`c`.`customer_id` = `so`.`customer_id`)) group by `c`.`customer_id`;
+
+-- -----------------------------------------------------
+-- View `warehouse_db`.`product_stock_information`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `warehouse_db`.`product_stock_information`;
+USE `warehouse_db`;
+CREATE  OR REPLACE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `warehouse_db`.`product_stock_information` AS select `p`.`product_id` AS `product_id`,`p`.`product_name` AS `product_name`,`i`.`location_id` AS `location_id`,`i`.`quantity` AS `stock_quantity` from (`warehouse_db`.`product` `p` join `warehouse_db`.`inventory` `i` on(`p`.`product_id` = `i`.`product_id`));
+
+-- -----------------------------------------------------
+-- View `warehouse_db`.`product_total_sales`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `warehouse_db`.`product_total_sales`;
+USE `warehouse_db`;
+CREATE  OR REPLACE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `warehouse_db`.`product_total_sales` AS select `p`.`product_id` AS `product_id`,`p`.`product_name` AS `product_name`,sum(`soi`.`quantity`) AS `total_sales` from (`warehouse_db`.`product` `p` join `warehouse_db`.`sales_order_item` `soi` on(`p`.`product_id` = `soi`.`product_id`)) group by `p`.`product_id`;
+
+-- -----------------------------------------------------
+-- View `warehouse_db`.`products_with_categories`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `warehouse_db`.`products_with_categories`;
+USE `warehouse_db`;
+CREATE  OR REPLACE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `warehouse_db`.`products_with_categories` AS select `p`.`product_id` AS `product_id`,`p`.`product_name` AS `product_name`,`c`.`category_name` AS `category_name` from (`warehouse_db`.`product` `p` join `warehouse_db`.`category` `c` on(`p`.`category` = `c`.`category_id`));
+
+SET SQL_MODE=@OLD_SQL_MODE;
+SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
+SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
